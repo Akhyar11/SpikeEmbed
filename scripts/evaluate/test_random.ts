@@ -87,7 +87,7 @@ async function main() {
 
         const inputData = new Float32Array(2 * sequenceLength);
         inputData.set(tokens1, 0); inputData.set(tokens2, sequenceLength);
-        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength]);
+        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength] as any);
 
         snnModel.resetState();
         const finalSpikes = snnModel.infer(inputs);

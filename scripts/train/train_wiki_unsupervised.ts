@@ -43,7 +43,7 @@ async function main() {
 
     // Hyperparameters
     const d_model = 64;
-    const sequenceLength = 512;
+    const sequenceLength = 32;
     const numPairs = 32; // Jumlah pasangan Q dan P+ per batch
     const batchSize = numPairs * 2; // Total kalimat dalam satu batch (contoh: 64)
     const timeSteps = 5;
@@ -65,7 +65,7 @@ async function main() {
 
     console.log("\nMemproses dataset dan Tokenisasi (Pre-tokenize)...");
     const datasetInputs: Matrix[] = [];
-    const fileStream = fs.createReadStream('./dataset/mini_corpus.txt');
+    const fileStream = fs.createReadStream('./dataset/mini_corpus20mb.txt');
     const rl = readline.createInterface({ input: fileStream, crlfDelay: Infinity });
 
     let lineCount = 0;
@@ -73,7 +73,7 @@ async function main() {
 
     for await (const line of rl) {
         let Q = line.trim();
-        if (!Q || Q.length < 100) continue; // Lewati kalimat kosong atau terlalu pendek
+        if (!Q || Q.length < 28) continue; // Lewati kalimat kosong atau terlalu pendek
 
         // POTONG KALIMAT AGAR SESUAI DENGAN WINDOW TOKENIZER (20 kata ~ 32 token)
         let words = Q.split(" ");
@@ -105,7 +105,7 @@ async function main() {
                 // Set P+ di paruh kedua batch
                 inputData.set(batchPairs[i].p, (numPairs + i) * sequenceLength);
             }
-            datasetInputs.push(Matrix.fromFlat(inputData, [batchSize * sequenceLength]));
+            datasetInputs.push(Matrix.fromFlat(inputData, [batchSize * sequenceLength] as any));
             batchPairs = [];
         }
 

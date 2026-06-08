@@ -37,7 +37,7 @@ async function main() {
     // 2. Memuat Kalimat Mentah dari Korpus Anda
     console.log("Membaca corpus lokal (mini_corpus20mb.txt)...");
     const corpusRaw = fs.readFileSync('./dataset/mini_corpus20mb.txt', 'utf8');
-    const allLines = corpusRaw.split('\n').filter(l => l.trim().length > 20); // Ambil kalimat minimal 20 karakter
+    const allLines = corpusRaw.split('\n').filter((l: string) => l.trim().length > 20); // Ambil kalimat minimal 20 karakter
     
     const TOTAL_TRIPLETS = 15000; 
     const dataset: any[] = [];

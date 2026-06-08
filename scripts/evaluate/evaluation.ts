@@ -58,7 +58,7 @@ async function main() {
     // Injeksi Bobot (Load Weights)
     model.embedding.embeddings!._data.set(embedding_weights);
     if (pos_embedding_weights) {
-        model.posEmbedding.embeddings!._data.set(pos_embedding_weights);
+        model.embedding.embeddings!._data.set(pos_embedding_weights);
     }
     model.attention.kernelQ!._data.set(kernelQ);
     model.attention.kernelK!._data.set(kernelK);
@@ -95,7 +95,7 @@ async function main() {
         const inputData = new Float32Array(2 * sequenceLength);
         inputData.set(tokens1, 0);
         inputData.set(tokens2, sequenceLength);
-        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength]);
+        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength] as any);
         
         // 3. Reset Neuron
         model.resetState();

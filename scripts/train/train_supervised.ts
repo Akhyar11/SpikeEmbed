@@ -74,13 +74,13 @@ async function main() {
                 inputData.set(tP, (numPairs + j) * sequenceLength);
             }
 
-            const inputs = Matrix.fromFlat(inputData, [batchSize * sequenceLength]);
+            const inputs = Matrix.fromFlat(inputData, [batchSize * sequenceLength] as any);
 
             model.resetState();
 
             // Ekstrak skor guru
-            const teacherPosScores = batchTriplets.map(t => t.teacher_pos_score);
-            const teacherNegScores = batchTriplets.map(t => t.teacher_neg_score);
+            const teacherPosScores = batchTriplets.map((t: any) => t.teacher_pos_score);
+            const teacherNegScores = batchTriplets.map((t: any) => t.teacher_neg_score);
 
             const result = model.forwardAndLearnLocal(inputs, B_emb, learningRate, teacherPosScores, teacherNegScores);
 

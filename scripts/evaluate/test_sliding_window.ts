@@ -35,7 +35,7 @@ function embedLongText(
     // Jika kalimat pendek, kita proses langsung (tanpa sliding window)
     if (tokens.length <= sequenceLength) {
         while (tokens.length < sequenceLength) tokens.push(padTokenId);
-        const inputMatrix = Matrix.fromFlat(new Float32Array(tokens), [sequenceLength]);
+        const inputMatrix = Matrix.fromFlat(new Float32Array(tokens), [sequenceLength] as any);
         model.build(1);
         const outputSpikes = model.infer(inputMatrix);
         return Array.from(outputSpikes._data);
@@ -70,7 +70,7 @@ function embedLongText(
         flatTokens.set(chunks[i], i * sequenceLength);
     }
     
-    const inputMatrix = Matrix.fromFlat(flatTokens, [numChunks * sequenceLength]);
+    const inputMatrix = Matrix.fromFlat(flatTokens, [numChunks * sequenceLength] as any);
     
     // Prediksi semua chunk sekaligus (Paralel)
     model.build(numChunks);

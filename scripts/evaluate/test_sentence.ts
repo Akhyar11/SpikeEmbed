@@ -45,7 +45,7 @@ async function main() {
     // Muat bobot yang sudah dilatih
     model.embedding.embeddings!._data.set(embedding_weights);
     if (pos_embedding_weights) {
-        model.posEmbedding.embeddings!._data.set(pos_embedding_weights);
+        model.embedding.embeddings!._data.set(pos_embedding_weights);
     }
     model.attention.kernelQ!._data.set(kernelQ);
     model.attention.kernelK!._data.set(kernelK);
@@ -78,7 +78,7 @@ async function main() {
         const inputData = new Float32Array(2 * sequenceLength);
         inputData.set(tokensA, 0);
         inputData.set(tokensB, sequenceLength);
-        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength]);
+        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength] as any);
 
         // 3. Reset state LIF (potensial membran)
         model.resetState();

@@ -36,7 +36,7 @@ async function main() {
     model.embedding.embeddings!._data.set(embedding_weights);
     if (pos_embedding_weights) {
         // Just in case it's in the config, though we removed it
-        // model.posEmbedding.embeddings!._data.set(pos_embedding_weights);
+        // model.embedding.embeddings!._data.set(pos_embedding_weights);
     }
     model.attention.kernelQ!._data.set(kernelQ);
     model.attention.kernelK!._data.set(kernelK);
@@ -69,7 +69,7 @@ async function main() {
         const inputData = new Float32Array(2 * sequenceLength);
         inputData.set(tokensA, 0);
         inputData.set(tokensB, sequenceLength);
-        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength]);
+        const inputs = Matrix.fromFlat(inputData, [2 * sequenceLength] as any);
 
         model.resetState();
         const finalSpikes = model.infer(inputs);

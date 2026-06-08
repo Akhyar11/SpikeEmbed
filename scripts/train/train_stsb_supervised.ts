@@ -91,7 +91,7 @@ async function main() {
                 inputData.set(tP, (numPairs + j) * sequenceLength);
             }
 
-            const inputs = Matrix.fromFlat(inputData, [batchSize * sequenceLength]);
+            const inputs = Matrix.fromFlat(inputData, [batchSize * sequenceLength] as any);
             model.resetState();
             
             // Ekstrak Human Score sebagai Target Loss
