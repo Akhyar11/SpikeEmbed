@@ -315,7 +315,8 @@ export class SpikingSentenceEmbedder {
            errorsSequence.push(Matrix.fromFlat(stepErrorData, [batchSize, this.d_model]));
        }
 
-       this.temporalPooler.learnThroughTime(errorsSequence, undefined, learningRate);
+       // TEMPORAL POOLER DIBEKUKAN (FROZEN) SEBAGAI INTEGRATOR MURNI
+       // this.temporalPooler.learnThroughTime(errorsSequence, undefined, learningRate);
 
        return { spikes2, localLoss1, localLoss2, poolerLoss };
    }

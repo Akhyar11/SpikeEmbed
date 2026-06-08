@@ -50,7 +50,7 @@ async function main() {
     const tokenizer = BPETokenizer.load("./models/vocab.json");
     const weightsStr = fs.readFileSync('./models/spiking_model_weights.json', 'utf8');
     const config = JSON.parse(weightsStr);
-    const { d_model, sequenceLength, vocabSize, embedding_weights, kernelQ, kernelK, kernelV } = config;
+    const { d_model, sequenceLength, vocabSize, embedding_weights, kernelQ, kernelK, kernelV, kernelPooler } = config;
 
     const snnModel = new SpikingSentenceEmbedder(vocabSize, d_model, sequenceLength, tokenizer.getPadId());
     snnModel.build(2);
@@ -58,6 +58,7 @@ async function main() {
     snnModel.attention.kernelQ!._data.set(kernelQ);
     snnModel.attention.kernelK!._data.set(kernelK);
     snnModel.attention.kernelV!._data.set(kernelV);
+    snnModel.temporalPooler.kernel!._data.set(kernelPooler);
 
     const hfExtractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     const stsbRaw = fs.readFileSync('./dataset/sts-b_valid.json', 'utf8');

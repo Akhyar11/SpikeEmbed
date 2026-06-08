@@ -183,6 +183,7 @@ async function main() {
             kernelQ: Array.from(model.attention.kernelQ!._data),
             kernelK: Array.from(model.attention.kernelK!._data),
             kernelV: Array.from(model.attention.kernelV!._data),
+            kernelPooler: Array.from(model.temporalPooler.kernel!._data),
             d_model,
             sequenceLength,
             vocabSize
