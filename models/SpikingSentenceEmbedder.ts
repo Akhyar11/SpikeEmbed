@@ -88,7 +88,7 @@ export class SpikingSentenceEmbedder {
         }
     }
 
-   public forwardAndLearnLocal(inputs: Matrix, B_emb: Matrix, learningRate: number) {
+   public forwardAndLearnLocal(inputs: Matrix, B_emb: Matrix, learningRate: number, teacherPosScores?: number[], teacherNegScores?: number[]) {
        this.zeroPadToken();
        const batchSeq = inputs._shape[0];
        const numPairs = batchSeq / (2 * this.sequenceLength);
@@ -157,7 +157,11 @@ export class SpikingSentenceEmbedder {
         const attSpikes = this.attention.forward(spikes1) as Matrix;
         const spikes2Data = this.spikes2DataBuffer!;
         for(let i=0; i<spikes2Data.length; i++) {
-            spikes2Data[i] = spikes1._data[i] + attSpikes._data[i];
+            // Binarize output attention agar mematuhi constraint SNN Add-Only
+            const attVal = attSpikes._data[i] > 0.5 ? 1.0 : 0.0;
+            let combined = spikes1._data[i] + attVal;
+            // Pastikan hasil residu tetap biner (maksimal 1)
+            spikes2Data[i] = combined > 0.5 ? 1.0 : 0.0;
         }
         const spikes2 = Matrix.fromFlat(spikes2Data, [batchSeq, this.d_model]);
        const errAttData = this.errAttDataBuffer!;
@@ -266,27 +270,33 @@ export class SpikingSentenceEmbedder {
        let poolerLoss = 0;
        
        for (let i = 0; i < numPairs; i++) {
-           const idxQ = i;
-           const idxP = numPairs + i;
-           const idxN = (numPairs + ((i + 1) % numPairs));
-           
-           for (let d = 0; d < this.d_model; d++) {
-               const qSpike = normalizedOutData[idxQ * this.d_model + d];
-               const pSpike = normalizedOutData[idxP * this.d_model + d];
-               const nSpike = normalizedOutData[idxN * this.d_model + d];
-               
-               let pull = pSpike - qSpike;
-               if (qSpike === 0 && pSpike === 0 && nSpike === 0) pull = 0.05;
-               const push = (qSpike * nSpike) * 0.2;
+            const idxQ = i;
+            const idxP = numPairs + i;
+            const idxN = (numPairs + ((i + 1) % numPairs));
+            
+            // KD Modulators: Contek kepintaran Guru!
+            const posScale = teacherPosScores ? Math.max(0, teacherPosScores[i]) : 1.0;
+            const negScale = teacherNegScores ? Math.max(0, 1.0 - teacherNegScores[i]) : 0.2;
 
-               if (pull !== 0 || push !== 0) {
-                   errorFinalData[idxQ * this.d_model + d] += pull - push;
-                   errorFinalData[idxP * this.d_model + d] += -pull;
-                   errorFinalData[idxN * this.d_model + d] += -push;
-                   poolerLoss += Math.abs(pull) + push;
-               }
-           }
-       }
+            for (let d = 0; d < this.d_model; d++) {
+                const qSpike = normalizedOutData[idxQ * this.d_model + d];
+                const pSpike = normalizedOutData[idxP * this.d_model + d];
+                const nSpike = normalizedOutData[idxN * this.d_model + d];
+                
+                let pull = pSpike - qSpike;
+                if (qSpike === 0 && pSpike === 0 && nSpike === 0) pull = 0.05;
+                
+                pull *= posScale;
+                const push = (qSpike * nSpike) * negScale;
+
+                if (pull !== 0 || push !== 0) {
+                    errorFinalData[idxQ * this.d_model + d] += pull - push;
+                    errorFinalData[idxP * this.d_model + d] += -pull;
+                    errorFinalData[idxN * this.d_model + d] += -push;
+                    poolerLoss += Math.abs(pull) + push;
+                }
+            }
+        }
 
        // BPTT Backward Pass - Distribusi Error ke Semua Waktu Token Valid (Kalkulus Sum Rule)
        const errorsSequence = [];
@@ -321,6 +331,7 @@ export class SpikingSentenceEmbedder {
         
         this.embedding.resetState();
         this.attention.resetState();
+        this.temporalPooler.resetSequence(this.sequenceLength);
         
         // Tahap 1: SNN Spatial Forward (Direct Firing)
         this.zeroPadToken();
